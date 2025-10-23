@@ -357,7 +357,7 @@ export default function ChatModal({ buddy, isOpen, onClose }) {
         {onClose ? (
           <button
             onClick={onClose}
-            className="hidden rounded-full border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.35em] text-zinc-400 transition hover:border-white/30 hover:text-zinc-200"
+            className="rounded-full border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.35em] text-zinc-400 transition hover:border-white/30 hover:text-zinc-200"
           >
             Close
           </button>

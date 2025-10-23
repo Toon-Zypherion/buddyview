@@ -1,6 +1,13 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
-type BuddiesFile = {
+
+type ViewsFile = {
+  views?: ViewRecord[];
+};
+
+type ViewRecord = {
+  id: string;
+  name: string;
   buddies?: BuddyRecord[];
 };
 
@@ -24,21 +31,15 @@ type BuddyDetail = BuddyRecord & {
 };
 
 const projectRoot = process.cwd();
-
-const dataFiles = ["data/buddies.json", "data/secondchamber.json"];
+const viewsDataPath = "data/views.json";
 
 let buddiesCache: BuddyRecord[] | null = null;
 
 async function loadAllBuddies(): Promise<BuddyRecord[]> {
-  const sources = await Promise.all(
-    dataFiles.map(async (relativePath) => {
-      const records = await readBuddiesFile(relativePath);
-      return records;
-    }),
-  );
+  const views = await readViewsFile();
 
-  return sources
-    .flat()
+  return views
+    .flatMap((view) => view.buddies ?? [])
     .filter(
       (entry): entry is BuddyRecord =>
         Boolean(
@@ -51,13 +52,13 @@ async function loadAllBuddies(): Promise<BuddyRecord[]> {
     );
 }
 
-async function readBuddiesFile(relativePath: string): Promise<BuddyRecord[]> {
-  const absolutePath = path.join(projectRoot, relativePath);
+async function readViewsFile(): Promise<ViewRecord[]> {
+  const absolutePath = path.join(projectRoot, viewsDataPath);
 
   try {
     const raw = await fs.readFile(absolutePath, "utf8");
-    const parsed = JSON.parse(raw) as BuddiesFile;
-    return parsed.buddies ?? [];
+    const parsed = JSON.parse(raw) as ViewsFile;
+    return parsed.views ?? [];
   } catch {
     return [];
   }
@@ -75,7 +76,9 @@ export async function refreshBuddyCache() {
   buddiesCache = await loadAllBuddies();
 }
 
-export async function findBuddyById(id: string): Promise<BuddyRecord | undefined> {
+export async function findBuddyById(
+  id: string,
+): Promise<BuddyRecord | undefined> {
   const buddies = await getBuddies();
   return buddies.find((entry) => entry.id === id);
 }

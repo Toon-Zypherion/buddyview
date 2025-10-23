@@ -2,18 +2,29 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import buddiesFile from "@/data/buddies.json";
-import secondChamberFile from "@/data/secondchamber.json";
+import viewsData from "@/data/views.json";
+import type { BuddyRecord } from "@/lib/buddyData";
 import ChatModal from "./chatmodal/ChatModal";
 
-const defaultBuddies = buddiesFile.buddies ?? [];
-const secondChamberBuddies = secondChamberFile.buddies ?? [];
-const viewConfigs = [
-  { name: "Strategy", buddies: defaultBuddies },
-  { name: "Development", buddies: secondChamberBuddies },
-] as const;
+type ViewConfig = {
+  id: string;
+  name: string;
+  description?: string;
+  buddies?: BuddyRecord[];
+};
 
-type Buddy = (typeof defaultBuddies)[number];
+type Buddy = BuddyRecord;
+
+const viewConfigs: ViewConfig[] = (viewsData.views ?? []) as ViewConfig[];
+
+const firstPopulatedViewIndex = viewConfigs.findIndex(
+  (view) => (view.buddies?.length ?? 0) > 0,
+);
+const initialViewIndex =
+  firstPopulatedViewIndex !== -1 ? firstPopulatedViewIndex : 0;
+
+const initialBuddyId =
+  viewConfigs[initialViewIndex]?.buddies?.[0]?.id ?? null;
 
 const statusConfig: Record<string, { label: string; tone: string }> = {
   online: { label: "Online", tone: "bg-emerald-400" },
@@ -22,16 +33,16 @@ const statusConfig: Record<string, { label: string; tone: string }> = {
 };
 
 export default function Home() {
-  const [viewIndex, setViewIndex] = useState(0);
-  const [activeBuddyId, setActiveBuddyId] = useState<string | null>(
-    defaultBuddies[0]?.id ?? null,
-  );
+  const [viewIndex, setViewIndex] = useState(initialViewIndex);
+  const [activeBuddyId, setActiveBuddyId] =
+    useState<string | null>(initialBuddyId);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(
-    Boolean(defaultBuddies[0]),
+    Boolean(initialBuddyId),
   );
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
-  const currentView = viewConfigs[viewIndex];
+  const currentView =
+    viewConfigs[viewIndex] ?? viewConfigs[0] ?? { id: "empty", name: "No Views", buddies: [] };
   const viewBuddies = useMemo(
     () =>
       (currentView.buddies ?? []).filter(
@@ -57,27 +68,38 @@ export default function Home() {
   }, [viewIndex, viewBuddies]);
 
   const goToNextView = useCallback(() => {
+    if (!viewConfigs.length) {
+      return;
+    }
+
     setViewIndex((previousIndex) =>
       previousIndex + 1 >= viewConfigs.length ? 0 : previousIndex + 1,
     );
   }, []);
 
   const goToPreviousView = useCallback(() => {
+    if (!viewConfigs.length) {
+      return;
+    }
+
     setViewIndex((previousIndex) =>
       previousIndex - 1 < 0 ? viewConfigs.length - 1 : previousIndex - 1,
     );
   }, []);
 
+  const hasMultipleViews = viewConfigs.length > 1;
+
   return (
     <div className="relative flex h-screen w-screen overflow-hidden font-sans text-zinc-100">
-      <div className="absolute left-6 z-50 top-6 hidden items-center gap-3 rounded-2xl  px-4 py-3 text-sm shadow-[0_16px_36px_rgba(0,0,0,0.4)] backdrop-blur md:flex">
+      <div className="absolute left-6 top-6 z-50 hidden items-center gap-3 rounded-2xl px-4 py-3 text-sm shadow-[0_16px_36px_rgba(0,0,0,0.4)] backdrop-blur md:flex">
         <div className="absolute inset-0 -z-10 rounded-xl bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.2),transparent_55%)]" />
-      <div className="absolute inset-0 -z-20 rounded-xl bg-[radial-gradient(circle_at_bottom_right,rgba(94,234,212,0.15),transparent_30%)]" />
+        <div className="absolute inset-0 -z-20 rounded-xl bg-[radial-gradient(circle_at_bottom_right,rgba(94,234,212,0.15),transparent_30%)]" />
         <button
           type="button"
           onClick={goToPreviousView}
           aria-label="Previous view"
-          className="rounded-xl px-2 py-1 text-xs uppercase tracking-[0.35em] text-zinc-300 transition hover:border-white/30 hover:text-white"
+          disabled={!hasMultipleViews}
+          className="rounded-xl px-2 py-1 text-xs uppercase tracking-[0.35em] text-zinc-300 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {"←"}
         </button>
@@ -88,7 +110,8 @@ export default function Home() {
           type="button"
           onClick={goToNextView}
           aria-label="Next view"
-          className="rounded-xl  px-2 py-1 text-xs uppercase tracking-[0.35em] text-zinc-300 transition hover:border-white/30 hover:text-white"
+          disabled={!hasMultipleViews}
+          className="rounded-xl px-2 py-1 text-xs uppercase tracking-[0.35em] text-zinc-300 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {"→"}
         </button>
@@ -107,6 +130,7 @@ export default function Home() {
       </button>
       {isMenuOpen ? (
         <MobileBuddyMenu
+          viewName={currentView.name}
           buddies={viewBuddies}
           activeBuddyId={activeBuddyId}
           onSelect={(buddyId) => {
@@ -159,6 +183,11 @@ function MapPlane({ buddies, activeBuddyId, onSelect }: MapPlaneProps) {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(32,40,52,0.65),rgba(6,8,10,0.95))]" />
 
       <div className="relative h-[88vh] w-[88vw] max-w-5xl">
+        {!buddies.length ? (
+          <div className="absolute inset-0 flex items-center justify-center rounded-[32px] text-center text-sm text-zinc-300 backdrop-blur">
+            No agents active in this regio.
+          </div>
+        ) : null}
         {buddies.map((buddy) => {
           if (
             !buddy?.location ||
@@ -233,6 +262,7 @@ function initialsFor(name: string) {
 }
 
 type MobileBuddyMenuProps = {
+  viewName: string;
   buddies: Buddy[];
   activeBuddyId: string | null;
   onSelect: (buddyId: string) => void;
@@ -240,6 +270,7 @@ type MobileBuddyMenuProps = {
 };
 
 function MobileBuddyMenu({
+  viewName,
   buddies,
   activeBuddyId,
   onSelect,
@@ -252,7 +283,7 @@ function MobileBuddyMenu({
       <div className="flex items-center justify-between px-6 pt-6 pb-4">
         <div className="flex flex-col">
           <span className="text-xs uppercase tracking-[0.35em] text-emerald-300">
-            Agents
+            {viewName}
           </span>
           <span className="mt-1 text-lg font-semibold text-white">
             Select Agent
@@ -271,51 +302,57 @@ function MobileBuddyMenu({
         </button>
       </div>
       <div className="flex-1 overflow-y-auto px-6 pb-12">
-        <div className="flex flex-col gap-4">
-          {buddies.map((buddy) => {
-            if (!buddy) {
-              return null;
-            }
-            const status =
-              statusConfig[buddy.status] ?? {
-                label: "Unknown",
-                tone: "bg-zinc-400",
-              };
-            const isActive = buddy.id === activeBuddyId;
+        {buddies.length ? (
+          <div className="flex flex-col gap-4">
+            {buddies.map((buddy) => {
+              if (!buddy) {
+                return null;
+              }
+              const status =
+                statusConfig[buddy.status] ?? {
+                  label: "Unknown",
+                  tone: "bg-zinc-400",
+                };
+              const isActive = buddy.id === activeBuddyId;
 
-            return (
-              <button
-                key={buddy.id}
-                type="button"
-                onClick={() => {
-                  onSelect(buddy.id);
-                  onClose();
-                }}
-                className={`flex w-full items-center justify-between rounded-3xl bg-white/10 px-5 py-4 text-left shadow-[0_16px_38px_rgba(0,0,0,0.35)] transition hover:bg-white/15 ${
-                  isActive ? "bg-white/20" : ""
-                }`}
-              >
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-white">
-                    {buddy.name}
-                  </span>
-                  <span className="mt-2 text-xs leading-5  text-zinc-300">
-                    {buddy.role}
-                  </span>
-                  <span className="mt-2 flex items-center gap-2 text-xs text-zinc-400">
-                    <span
-                      className={`inline-flex h-2 w-2 rounded-full ${status.tone}`}
-                    />
-                    {status.label}
-                  </span>
-                </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-sm font-semibold text-white shadow-inner shadow-black/30">
-                  {initialsFor(buddy.name)}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+              return (
+                <button
+                  key={buddy.id}
+                  type="button"
+                  onClick={() => {
+                    onSelect(buddy.id);
+                    onClose();
+                  }}
+                  className={`flex w-full items-center justify-between rounded-3xl bg-white/10 px-5 py-4 text-left shadow-[0_16px_38px_rgba(0,0,0,0.35)] transition hover:bg-white/15 ${
+                    isActive ? "bg-white/20" : ""
+                  }`}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-white">
+                      {buddy.name}
+                    </span>
+                    <span className="mt-2 text-xs leading-5 text-zinc-300">
+                      {buddy.role}
+                    </span>
+                    <span className="mt-2 flex items-center gap-2 text-xs text-zinc-400">
+                      <span
+                        className={`inline-flex h-2 w-2 rounded-full ${status.tone}`}
+                      />
+                      {status.label}
+                    </span>
+                  </div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-sm font-semibold text-white shadow-inner shadow-black/30">
+                    {initialsFor(buddy.name)}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex h-full items-center justify-center rounded-3xl border border-white/10 bg-white/5 text-center text-sm text-zinc-300">
+            No agents are available in this view yet.
+          </div>
+        )}
       </div>
     </div>
   );
