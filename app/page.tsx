@@ -1,10 +1,11 @@
 'use client';
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import viewsData from "@/data/views.json";
 import type { BuddyRecord } from "@/lib/buddyData";
 import ChatModal from "./chatmodal/ChatModal";
+import LobbyModal from "./chatmodal/LobbyModal";
 
 type ViewConfig = {
   id: string;
@@ -32,6 +33,20 @@ const statusConfig: Record<string, { label: string; tone: string }> = {
   offline: { label: "Offline", tone: "bg-zinc-400" },
 };
 
+function isValidBuddy(entry: unknown): entry is Buddy {
+  return Boolean(
+    entry &&
+      typeof entry === "object" &&
+      "id" in entry &&
+      typeof entry.id === "string" &&
+      entry.id.length > 0,
+  );
+}
+
+function toValidBuddies(list?: BuddyRecord[]): Buddy[] {
+  return (list ?? []).filter(isValidBuddy);
+}
+
 export default function Home() {
   const [viewIndex, setViewIndex] = useState(initialViewIndex);
   const [activeBuddyId, setActiveBuddyId] =
@@ -41,18 +56,15 @@ export default function Home() {
   );
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
+  const allBuddies = useMemo(
+    () => toValidBuddies(viewConfigs.flatMap((view) => view.buddies ?? [])),
+    [],
+  );
+
   const currentView =
     viewConfigs[viewIndex] ?? viewConfigs[0] ?? { id: "empty", name: "No Views", buddies: [] };
   const viewBuddies = useMemo(
-    () =>
-      (currentView.buddies ?? []).filter(
-        (entry): entry is Buddy =>
-          Boolean(entry) &&
-          typeof entry === "object" &&
-          "id" in entry &&
-          typeof entry.id === "string" &&
-          entry.id.length > 0,
-      ),
+    () => toValidBuddies(currentView.buddies),
     [currentView.buddies],
   );
 
@@ -61,31 +73,48 @@ export default function Home() {
     [activeBuddyId, viewBuddies],
   );
 
-  useEffect(() => {
-    const fallbackId = viewBuddies[0]?.id ?? null;
-    setActiveBuddyId(fallbackId);
-    setIsChatOpen(Boolean(fallbackId));
-  }, [viewIndex, viewBuddies]);
+  const setViewByIndex = useCallback(
+    (nextIndex: number) => {
+      if (!viewConfigs.length) {
+        setViewIndex(0);
+        setActiveBuddyId(null);
+        setIsChatOpen(false);
+        
+        return;
+      }
+
+      const clampedIndex =
+        nextIndex < 0
+          ? viewConfigs.length - 1
+          : nextIndex >= viewConfigs.length
+            ? 0
+            : nextIndex;
+
+      setViewIndex(clampedIndex);
+      const fallbackId =
+        toValidBuddies(viewConfigs[clampedIndex]?.buddies).at(0)?.id ?? null;
+      setActiveBuddyId(fallbackId);
+      setIsChatOpen(Boolean(fallbackId));
+      
+    },
+    [],
+  );
 
   const goToNextView = useCallback(() => {
     if (!viewConfigs.length) {
       return;
     }
 
-    setViewIndex((previousIndex) =>
-      previousIndex + 1 >= viewConfigs.length ? 0 : previousIndex + 1,
-    );
-  }, []);
+    setViewByIndex(viewIndex + 1);
+  }, [setViewByIndex, viewIndex]);
 
   const goToPreviousView = useCallback(() => {
     if (!viewConfigs.length) {
       return;
     }
 
-    setViewIndex((previousIndex) =>
-      previousIndex - 1 < 0 ? viewConfigs.length - 1 : previousIndex - 1,
-    );
-  }, []);
+    setViewByIndex(viewIndex - 1);
+  }, [setViewByIndex, viewIndex]);
 
   const hasMultipleViews = viewConfigs.length > 1;
 
@@ -146,18 +175,28 @@ export default function Home() {
         onSelect={(buddyId) => {
           setActiveBuddyId(buddyId);
           setIsChatOpen(true);
+          
+        }}
+        onBackgroundClick={() => {
+          setIsChatOpen(false);
+          setActiveBuddyId(null);
+          
         }}
       />
-      <aside
-        className={`relative z-10 h-full w-full max-w-md transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-          isChatOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <ChatModal
-          buddy={activeBuddy}
-          isOpen={isChatOpen}
-          onClose={() => setIsChatOpen(false)}
-        />
+      <aside className="relative z-10 h-full w-full max-w-md">
+        <LobbyModal buddies={allBuddies} />
+        <div className="absolute inset-0">
+          {isChatOpen && activeBuddy ? (
+            <ChatModal
+              buddy={activeBuddy}
+              isOpen={isChatOpen}
+              onClose={() => {
+                setIsChatOpen(false);
+                setActiveBuddyId(null);
+              }}
+            />
+          ) : null}
+        </div>
       </aside>
     </div>
   );
@@ -167,11 +206,20 @@ type MapPlaneProps = {
   buddies: Buddy[];
   activeBuddyId: string | null;
   onSelect: (buddyId: string) => void;
+  onBackgroundClick?: () => void;
 };
 
-function MapPlane({ buddies, activeBuddyId, onSelect }: MapPlaneProps) {
+function MapPlane({
+  buddies,
+  activeBuddyId,
+  onSelect,
+  onBackgroundClick,
+}: MapPlaneProps) {
   return (
-    <div className="relative flex flex-1 items-center justify-center overflow-hidden">
+    <div
+      className="relative flex flex-1 items-center justify-center overflow-hidden"
+      onClick={onBackgroundClick}
+    >
       <Image
         src="/background.png"
         alt="Antwerp satellite view"
@@ -207,7 +255,10 @@ function MapPlane({ buddies, activeBuddyId, onSelect }: MapPlaneProps) {
               key={buddy.id}
               type="button"
               aria-pressed={isActive}
-              onClick={() => onSelect(buddy.id)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onSelect(buddy.id);
+              }}
               style={{
                 left: `${buddy.location.x}%`,
                 top: `${buddy.location.y}%`,

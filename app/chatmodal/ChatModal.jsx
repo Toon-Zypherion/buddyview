@@ -134,8 +134,8 @@ export default function ChatModal({ buddy, isOpen, onClose }) {
   const containerState = useMemo(
     () =>
       isOpen
-        ? "opacity-100 scale-100 blur-0 pointer-events-auto"
-        : "opacity-0 scale-[0.98] blur-[3px] pointer-events-none",
+        ? "opacity-100 pointer-events-auto"
+        : "opacity-0 pointer-events-none",
     [isOpen],
   );
 
@@ -322,7 +322,7 @@ export default function ChatModal({ buddy, isOpen, onClose }) {
 
   return (
     <div
-      className={`relative flex h-full w-full flex-col overflow-hidden rounded-l-[32px] border-l border-white/10 bg-[#0b0d11]/90 text-zinc-100 shadow-[0_0_60px_rgba(0,0,0,0.55)] backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${containerState}`}
+      className={`relative flex h-full w-full flex-col overflow-hidden rounded-l-[32px] border-l border-white/10 bg-[#0b0d11]/90 text-zinc-100 shadow-[0_0_60px_rgba(0,0,0,0.55)] backdrop-blur-xl transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${containerState}`}
     >
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.2),transparent_55%)]" />
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_bottom_right,rgba(94,234,212,0.15),transparent_60%)]" />
