@@ -1,0 +1,55 @@
+ long-term user goals:
+-tony stark like internal setup
+-builds/features one new agent per day
+-10k revenue by 1st of jan 2026
+-1mil in revenue by 1st of jan 2027
+-dream internal LLM workflow for expertise
+
+personal brand:
+
+systems that make storytelling smarter and more scalable.
+surprise by showing practical, unexpected uses of AI in creativity.
+delight by being blunt, experimental, and transparently human
+Achiel Apers on linkedin
+
+personal brand strategy:
+
+build agents into a sustainable income to allow breathing room for experimentation.
+define north star post angle (=100 hooks, 100 img templates)
+document north star agentic workflow 
+
+company info:
+note: it's all scattered around in different websites and holding names, but essentially we are vibe-coding content creation agents as former marketeers. currently, company is ugcreative.ai:
+-e-commerce like webshop featuring agents instead of products
+-reusable scaffolds so new viral workflows can be cloned in hours
+-the buyer’s moment of need and script the narrative (north star for every sprint)
+
+roadmap: open to new direction
+
+career details: dropshipping (shopify) + fb ads + google ads in 2016-2021. Building LLM integrations since 2022. failed 2 companies (ppcc.ai, llm for google search ads + others we were marketing as companies instead of extentions of personal brand )
+
+short-term goals: 
+-first sale in 1 week (=on the first of november). 
+-2 new agents launch in november. 
+-linkedin is as active as it can be in november.
+
+(ex)-companies:
+-ppcc.ai: llm for google search ads campaigns; from url to campaign
+-zypherion: old internal software agency that's dusty
+-complexify: generate viral img templates for linkedin (current: ecomproductimage->influencer holding->socials->results)
+-ugcreative.ai: monthly fee influencer video generation platform that will be turned into agent ecom website
+-postcraft: linkedin post builder to help Toon(=user) (linkedin toon=achiel) craft posts efficiently (template->hook->snippets)
+-buddyview: map where Toon can view his llm agents and workforce (including your place of birth)
+
+first agent:
+
+this is a draft table of the 2 first agents we will be selling and pushing social media content to: 
+
+| Sora 2 Product-in-hand                                                                                                                                                                                                                                                                                                                                   | Veo3 Ad Factory                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| → Upload product photo/PNG→ Pick avatar look + brand tone→ Enter 3 benefits + target audience→ Agent writes short UGC script→ Select voice style (friendly/expert/urgent)→ Sora 2 renders product-in-hand video→ Auto-captions + CTA overlay added→ Auto-crop to TikTok/Reels/Shorts specs→ Quick preview → approve→ Schedule/publish + track clicks<br> | → Drop product shots + hook list→ Choose angles (testimonial/demo/problem-solution)→ Agent builds variant grid (hook × angle × CTA)→ Veo3 batch-renders 20–100 videos→ Auto-thumbnails, captions, hashtags→ Platform-native crops generated→ Queue posts across channels→ Live leaderboard: winners vs losers→ Auto-kill weak variants, scale winners→ Save top ads as templates |
+
+
+Q&A with user
+Which north star hook hooks your wildest dream revenue?
+-this company was made with one prompt, and will now operate forever.

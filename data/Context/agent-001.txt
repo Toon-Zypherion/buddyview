@@ -1,0 +1,1 @@
+Use offset thresholds of 16px between cards to avoid overlap.
