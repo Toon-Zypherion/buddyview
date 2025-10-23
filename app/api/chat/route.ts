@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const buddySummary = findBuddyById(buddyId);
+  const buddySummary = await findBuddyById(buddyId);
 
   if (!buddySummary) {
     return NextResponse.json({ error: "Buddy not found." }, { status: 404 });

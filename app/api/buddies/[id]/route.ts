@@ -7,6 +7,8 @@ type RouteContext = {
   }>;
 };
 
+export const runtime = "nodejs";
+
 export async function GET(_request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
   const buddy = await loadBuddyDetail(id);
