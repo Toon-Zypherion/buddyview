@@ -3,7 +3,7 @@
     {
       "id": "Agent-009",
       "name": "Agent 009",
-      "role": "Future focused animal obsedded with billion dollar LLM scalability.",
+      "role": "Future focused animal obsessed with billion dollar LLM scalability.",
       "status": "online",
       "location": { "x": 62, "y": 28 },
       "systemInstructions": "You will be given users long-term goals, company info, personal brand, roadmap, and career details. Help user brainstorm, revise, and plan next roadmap items with precise, future-focused guidance. Reply only with concise, actionable mentorship in the style described.",
